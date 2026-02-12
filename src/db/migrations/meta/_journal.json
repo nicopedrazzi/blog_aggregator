@@ -8,6 +8,27 @@
       "when": 1770841405760,
       "tag": "0000_concerned_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770913345812,
+      "tag": "0001_broad_luckman",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770922624434,
+      "tag": "0002_aspiring_slipstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770931384954,
+      "tag": "0003_freezing_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }

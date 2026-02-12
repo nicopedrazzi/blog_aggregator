@@ -1,4 +1,10 @@
-import {  XMLParser, XMLBuilder, XMLValidator } from "fast-xml-parser";
+import { XMLParser } from "fast-xml-parser";
+import { feeds } from "./db/schema";
+import { db } from "./db";
+import { validateConfig } from "./config";
+import { users } from "./db/schema";
+import { eq, and } from "drizzle-orm";
+import { feedFollows } from "./db/schema";
 
 
 type FeedItem = {
@@ -41,7 +47,7 @@ export async function fetchFeed(feedURL: string):Promise<Feed>{
     else if (!channelField.description){
         throw new Error("Field description is missing!");
     };
-    
+
     let returnedItems:any = [];
 
     if (channelField.item){
@@ -79,3 +85,64 @@ export async function fetchFeed(feedURL: string):Promise<Feed>{
         items: itemsMetadata,
     };
     };
+
+ 
+export async function createFeeds(name:string, feedURL:string){
+    let currentUser = validateConfig().currentUserName;
+    const currentIDrow = await db
+        .select({id: users.id})
+        .from(users)
+        .where(eq(users.name,currentUser));
+    if (currentIDrow.length === 0) {
+        throw new Error("Current user not found");
+    }
+    const currentID = currentIDrow[0].id;
+    const [result] = await db.insert(feeds).values({name: name,url: feedURL, userId:currentID}).returning();
+    await createFeedFollow(currentID, result.id);
+    return result;
+    
+};
+
+
+export type FeedRecord = typeof feeds.$inferSelect;
+export type UserRecord = typeof users.$inferSelect;
+
+export function printFeed(feed: FeedRecord, user: UserRecord): void {
+    console.log(`* ${feed.name}`);
+    console.log(`  URL: ${feed.url}`);
+    console.log(`  User: ${user.name}`);
+}
+
+export async function createFeedFollow(userId:string,feedId:string){
+    const [newFeedFollow] = await db.insert(feedFollows).values({userId,feedId}).returning();
+    const fetchedInfo = await db.select({
+      id: feedFollows.id,
+      createdAt: feedFollows.createdAt,
+      updatedAt: feedFollows.updatedAt,
+      userId: feedFollows.userId,
+      feedId: feedFollows.feedId,
+      userName: users.name,
+      feedName: feeds.name,
+    }).from(feedFollows).innerJoin(users,eq(feedFollows.userId,users.id))
+    .innerJoin(feeds,eq(feedFollows.feedId,feeds.id))
+    .where(eq(feedFollows.id,newFeedFollow.id));
+
+    if (fetchedInfo.length === 0){
+        throw new Error("Failed to load created feed follow");
+    };
+    return fetchedInfo[0];
+};
+
+export async function deleteFollowing(name:string, feedURL:string){
+    const feedid = await db.select().from(feeds).where(eq(feeds.url, feedURL));
+    const userid = await db.select().from(users).where(eq(users.name, name));
+    await db
+  .delete(feedFollows)
+  .where(
+    and(
+      eq(feedFollows.feedId, feedid[0].id),
+      eq(feedFollows.userId, userid[0].id)
+    ),
+  );
+  console.log("Follow deleted!")
+}

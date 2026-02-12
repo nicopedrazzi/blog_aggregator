@@ -1,4 +1,4 @@
-import { readConfig } from "src/config";
+import { readAppConfig } from "./src/lib/appConfig";
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
@@ -6,6 +6,6 @@ export default defineConfig({
   out: "src/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: readConfig().dbUrl,
+    url: readAppConfig().dbUrl,
   },
 });
