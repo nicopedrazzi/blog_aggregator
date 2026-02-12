@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { createUser , getUsers} from "./db/queries/users";
 import { db } from "./db";
 import { users } from "./db/schema";
+import { fetchFeed } from "./rssFunctions";
 
 
 export type Config = {
@@ -34,6 +35,16 @@ export async function handlerLogin(_cmdName: string, ...args: string[]){
     console.log("User sucessfully logged in!")
 
     };
+
+
+export async function fetchFeedObj(_cmdName:string,...args:string[]):Promise<void>{
+    if (args.length !== 1){
+        console.log("Unexpected args length, please give ONE url");
+        process.exit(1);
+        
+    };
+    console.log(await fetchFeed(args[0]));
+};
 
 export async function registerHandler(_cmdName: string, ...args:string[]){
     if (args.length !== 1){
