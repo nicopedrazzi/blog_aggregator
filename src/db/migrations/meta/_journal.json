@@ -29,6 +29,13 @@
       "when": 1770931384954,
       "tag": "0003_freezing_kitty_pryde",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770936031895,
+      "tag": "0004_dapper_living_tribunal",
+      "breakpoints": true
     }
   ]
 }
