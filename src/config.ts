@@ -5,6 +5,7 @@ import { feedFollows, feeds, users } from "./db/schema";
 import { createFeedFollow, createFeeds, deleteFollowing, fetchFeed, printFeed } from "./rssFunctions";
 import { AppConfig, readAppConfig, writeAppConfig } from "./lib/appConfig";
 import { UserRecord } from "./rssFunctions";
+import { scrapeFeeds } from "./aggregate";
 
 
 export type Config = AppConfig;
@@ -27,15 +28,52 @@ export async function handlerLogin(_cmdName: string, ...args: string[]){
 
     };
 
-    
+
+function parseDuration(durationStr: string): number{
+    const regex = /^(\d+)(ms|s|m|h)$/;
+    const match = durationStr.match(regex);
+    if (!match) {
+        throw new Error("Invalid duration. Use formats like 500ms, 1s, 1m, 1h.");
+    }
+    const value = Number(match[1]);
+    const unit = match[2];
+    const multipliers: Record<string, number> = {
+        ms: 1,
+        s: 1000,
+        m: 60_000,
+        h: 3_600_000,
+    };
+    return value * multipliers[unit];
+};
+
 export async function fetchFeedObj(_cmdName: string, ...args: string[]):Promise<void>{
-    /*if (args.length !== 0){
-        console.log("Unexpected args length, please give ONE url");
-        process.exit(1);
-        
-    };*/
-    let link = "https://www.wagslane.dev/index.xml"
-    console.log(await fetchFeed(link));
+    if (args.length !== 1){
+        throw new Error("Expected exactly one argument: time_between_reqs");
+    }
+    const timeBetweenRequests = parseDuration(args[0]);
+    console.log(`Collecting feeds every ${args[0]}`);
+
+    const handleError = (err: unknown) => {
+        if (err instanceof Error) {
+            console.error(err.message);
+            return;
+        }
+        console.error(err);
+    };
+
+    scrapeFeeds().catch(handleError);
+
+    const interval = setInterval(() => {
+        scrapeFeeds().catch(handleError);
+    }, timeBetweenRequests);
+
+    await new Promise<void>((resolve) => {
+        process.on("SIGINT", () => {
+            console.log("Shutting down feed aggregator...");
+            clearInterval(interval);
+            resolve();
+        });
+    });
 };
 
 export type UserCommandHandler = (
