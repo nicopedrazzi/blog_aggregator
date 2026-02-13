@@ -9,6 +9,14 @@ export type Post = {
 };
 
 export async function createPost(post:Post){
-    await db.insert(posts).values({title:post.title,description:post.description,url:post.url,publishedAt:post.publishedAt, feedId:post.feedId})
+    await db
+        .insert(posts)
+        .values({
+            title: post.title,
+            description: post.description,
+            url: post.url,
+            publishedAt: post.publishedAt,
+            feedId: post.feedId,
+        })
+        .onConflictDoNothing({ target: posts.url });
 };
-

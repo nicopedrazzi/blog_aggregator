@@ -78,10 +78,13 @@ export async function fetchFeedObj(_cmdName: string, ...args: string[]):Promise<
 };
 
 export async function getPostForUser(_cmdName: string, user: UserRecord, ...args: string[]) {
-    if (args.length!==1){
-        throw new Error("How many post do you want to retrieve?");
-    };
-    const limit = args[0] ? Number(args[0]): 2;
+    if (args.length > 1){
+        throw new Error("Expected at most one argument: limit");
+    }
+    const limit = args[0] ? Number(args[0]) : 2;
+    if (!Number.isInteger(limit) || limit <= 0) {
+        throw new Error("limit must be a positive integer");
+    }
 
   const retrievedPosts = await db
     .select({

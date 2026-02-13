@@ -3,6 +3,7 @@ import { feeds } from "./db/schema";
 import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { fetchFeed } from "./rssFunctions";
+import { createPost } from "./post";
 
 export async function markFeedFetched(id: string) {
   await db
@@ -32,7 +33,13 @@ export async function scrapeFeed(){
     await markFeedFetched(nextToFetch.id);
     const fetchedItems = await fetchFeed(nextToFetch.url);
     for (let item of fetchedItems.items){
-        console.log(item.title);
+        await createPost({
+      title: item.title,
+      url: item.link,
+      description: item.description,
+      publishedAt: new Date(item.pubDate),
+      feedId: nextToFetch.id,
+    });
     }
 }
 

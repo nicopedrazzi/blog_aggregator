@@ -1,4 +1,4 @@
-import { CommandsRegistry, registerCommand, runCommand, handlerLogin, registerHandler, getUsersAndCurrent, fetchFeedObj, addFeedCommand, Feed, FeedFollowCommand, GetFeedFollowsForUser, getCurrentUserFollowsCommand, middlewareLoggedIn, deleteHandler} from "./config.js";
+import { CommandsRegistry, registerCommand, runCommand, handlerLogin, registerHandler, getUsersAndCurrent, fetchFeedObj, addFeedCommand, Feed, FeedFollowCommand, GetFeedFollowsForUser, getCurrentUserFollowsCommand, middlewareLoggedIn, deleteHandler, getPostForUser} from "./config.js";
 import { deleteAll } from "./db/queries/users.js";
 
 const registry:CommandsRegistry = {};
@@ -15,6 +15,7 @@ async function main() {
   registerCommand(registry,"follow",middlewareLoggedIn(FeedFollowCommand));
   registerCommand(registry,"following", middlewareLoggedIn(getCurrentUserFollowsCommand));
   registerCommand(registry,"unfollow", middlewareLoggedIn(deleteHandler));
+  registerCommand(registry,"browse",middlewareLoggedIn(getPostForUser));
 
   const args = process.argv;
   const newArgs = args.slice(2);
