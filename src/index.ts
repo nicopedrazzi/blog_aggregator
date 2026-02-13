@@ -1,6 +1,8 @@
 import { CommandsRegistry, registerCommand, runCommand, middlewareLoggedIn } from "./helperFunctions.js";
 import { handlerLogin, registerHandler, getUsersAndCurrent, fetchFeedObj, addFeedCommand, Feed, FeedFollowCommand, getCurrentUserFollowsCommand, deleteHandler, getPostForUser } from "./handlersFunctions.js";
 import { deleteAll } from "./db/queries/users.js";
+import { createInterface } from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 
 const registry:CommandsRegistry = {};
 
@@ -26,7 +28,34 @@ async function main() {
   }
   const command = newArgs[0];
   const rest = newArgs.slice(1);
-  await runCommand(registry,command,...rest);
+
+  if (command !== "browse") {
+    await runCommand(registry, command, ...rest);
+    process.exit(0);
+  }
+
+  await runCommand(registry, "browse", ...rest);
+
+  let offset = Number(rest[0]);
+  const hasOffset = Number.isInteger(offset) && offset >= 0;
+  if (!hasOffset) {
+    offset = 0;
+  }
+  const tailArgs = hasOffset ? rest.slice(1) : rest;
+
+  const rl = createInterface({ input, output });
+  while (true) {
+    const answer = await rl.question("Press Enter for next page, q to quit: ");
+    if (answer.trim().toLowerCase() === "q") {
+      break;
+    }
+    if (answer.trim() !== "") {
+      continue;
+    }
+    offset += 5;
+    await runCommand(registry, "browse", String(offset), ...tailArgs);
+  }
+  rl.close();
   process.exit(0);
 }
 

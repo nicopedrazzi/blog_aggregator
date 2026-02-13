@@ -195,7 +195,9 @@ export async function getPostForUser(_cmdName: string, user: UserRecord, ...args
         .offset(offset);
 
     for (const post of retrievedPosts) {
-        console.log(`${post.title} (${post.feedName})`);
-        console.log(post.url);
+        console.log("------------------------------------------------------------------");
+        console.log(`| Post: ${post.title} -- From (${post.feedName})`);
+        console.log(`| Post Url: ${post.url}`);
+        console.log("------------------------------------------------------------------");
     }
 };
