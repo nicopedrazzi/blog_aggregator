@@ -1,5 +1,5 @@
-import { db } from "./db";
-import { feeds } from "./db/schema";
+import { db } from "..";
+import { feeds } from "../schema";
 import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { fetchFeed } from "./rssFunctions";

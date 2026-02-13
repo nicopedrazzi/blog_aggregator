@@ -1,4 +1,5 @@
-import { CommandsRegistry, registerCommand, runCommand, handlerLogin, registerHandler, getUsersAndCurrent, fetchFeedObj, addFeedCommand, Feed, FeedFollowCommand, GetFeedFollowsForUser, getCurrentUserFollowsCommand, middlewareLoggedIn, deleteHandler, getPostForUser} from "./config.js";
+import { CommandsRegistry, registerCommand, runCommand, middlewareLoggedIn } from "./config.js";
+import { handlerLogin, registerHandler, getUsersAndCurrent, fetchFeedObj, addFeedCommand, Feed, FeedFollowCommand, getCurrentUserFollowsCommand, deleteHandler, getPostForUser } from "./handlersFunctions.js";
 import { deleteAll } from "./db/queries/users.js";
 
 const registry:CommandsRegistry = {};

@@ -1,5 +1,6 @@
-import { posts } from "./db/schema";
-import { db } from "./db";
+import { posts } from "../schema";
+import { db } from "../index";
+
 export type Post = {
     title:string,
     url:string,

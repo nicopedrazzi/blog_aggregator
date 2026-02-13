@@ -1,10 +1,8 @@
 import { XMLParser } from "fast-xml-parser";
-import { feeds } from "./db/schema";
-import { db } from "./db";
-import { validateConfig } from "./config";
-import { users } from "./db/schema";
+import { db } from "../index";
+import { feedFollows, feeds, users } from "../schema";
+import { validateConfig } from "../../config";
 import { eq, and } from "drizzle-orm";
-import { feedFollows } from "./db/schema";
 
 
 type FeedItem = {
