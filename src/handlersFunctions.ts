@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ilike, or } from "drizzle-orm";
 import { createUser , getUsers} from "./db/queries/users";
 import { db } from "./db";
 import { feedFollows, feeds, users } from "./db/schema";
-import { setUser, validateConfig, parseDuration } from "./config";
+import { setUser, validateConfig, parseDuration } from "./helperFunctions";
 import { UserRecord, createFeedFollow, createFeeds, deleteFollowing, printFeed } from "./db/queries/rssFunctions";
 import { scrapeFeeds } from "./db/queries/aggregate";
 import { posts } from "./db/schema";
@@ -140,29 +140,45 @@ export async function deleteHandler(_cmdName: string, user: UserRecord, ...args:
 };
 
 export async function getPostForUser(_cmdName: string, user: UserRecord, ...args: string[]) {
-    if (args.length > 1){
-        throw new Error("Expected at most one argument: limit");
+    if (args.length > 3){
+        throw new Error("Usage: browse [limit] [filter <text>]");
     }
     const limit = args[0] ? Number(args[0]) : 2;
     if (!Number.isInteger(limit) || limit <= 0) {
         throw new Error("limit must be a positive integer");
     }
 
-  const retrievedPosts = await db
-    .select({
-      title: posts.title,
-      url: posts.url,
-      description: posts.description,
-      publishedAt: posts.publishedAt,
-      feedName: feeds.name,
-    })
-    .from(posts)
-    .innerJoin(feeds, eq(posts.feedId, feeds.id))
-    .where(eq(feeds.userId, user.id))
-    .limit(limit);
+    let whereClause = eq(feeds.userId, user.id);
+    if (args[1] !== undefined || args[2] !== undefined) {
+        if (args[1] !== "filter" || !args[2]) {
+            throw new Error("Usage: browse [limit] [filter <text>]");
+        }
+        const term = `%${args[2]}%`;
+        whereClause = and(
+            eq(feeds.userId, user.id),
+            or(
+                ilike(posts.title, term),
+                ilike(posts.description, term),
+                ilike(feeds.name, term),
+            ),
+        )!;
+    }
 
-  for (const post of retrievedPosts) {
-    console.log(`${post.title} (${post.feedName})`);
-    console.log(post.url);
-  };
+    const retrievedPosts = await db
+        .select({
+            title: posts.title,
+            url: posts.url,
+            description: posts.description,
+            publishedAt: posts.publishedAt,
+            feedName: feeds.name,
+        })
+        .from(posts)
+        .innerJoin(feeds, eq(posts.feedId, feeds.id))
+        .where(whereClause)
+        .limit(limit);
+
+    for (const post of retrievedPosts) {
+        console.log(`${post.title} (${post.feedName})`);
+        console.log(post.url);
+    }
 };

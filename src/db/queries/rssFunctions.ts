@@ -1,7 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 import { db } from "../index";
 import { feedFollows, feeds, users } from "../schema";
-import { validateConfig } from "../../config";
+import { validateConfig } from "../../helperFunctions";
 import { eq, and } from "drizzle-orm";
 
 
