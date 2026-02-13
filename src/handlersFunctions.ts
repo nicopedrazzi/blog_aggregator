@@ -141,19 +141,34 @@ export async function deleteHandler(_cmdName: string, user: UserRecord, ...args:
 
 export async function getPostForUser(_cmdName: string, user: UserRecord, ...args: string[]) {
     if (args.length > 3){
-        throw new Error("Usage: browse [limit] [filter <text>]");
+        throw new Error("Usage: browse [offset] [filter <text>]");
     }
-    const limit = args[0] ? Number(args[0]) : 2;
-    if (!Number.isInteger(limit) || limit <= 0) {
-        throw new Error("limit must be a positive integer");
+
+    let offset = 0;
+    let filterText: string | undefined;
+
+    if (args[0] === "filter") {
+        if (!args[1] || args.length > 2) {
+            throw new Error("Usage: browse [offset] [filter <text>]");
+        }
+        filterText = args[1];
+    } else if (args[0] !== undefined) {
+        const parsedOffset = Number(args[0]);
+        if (!Number.isInteger(parsedOffset) || parsedOffset < 0) {
+            throw new Error("offset must be a non-negative integer");
+        }
+        offset = parsedOffset;
+        if (args[1] !== undefined || args[2] !== undefined) {
+            if (args[1] !== "filter" || !args[2]) {
+                throw new Error("Usage: browse [offset] [filter <text>]");
+            }
+            filterText = args[2];
+        }
     }
 
     let whereClause = eq(feeds.userId, user.id);
-    if (args[1] !== undefined || args[2] !== undefined) {
-        if (args[1] !== "filter" || !args[2]) {
-            throw new Error("Usage: browse [limit] [filter <text>]");
-        }
-        const term = `%${args[2]}%`;
+    if (filterText) {
+        const term = `%${filterText}%`;
         whereClause = and(
             eq(feeds.userId, user.id),
             or(
@@ -175,7 +190,9 @@ export async function getPostForUser(_cmdName: string, user: UserRecord, ...args
         .from(posts)
         .innerJoin(feeds, eq(posts.feedId, feeds.id))
         .where(whereClause)
-        .limit(limit);
+        .orderBy(posts.createdAt)
+        .limit(10)
+        .offset(offset);
 
     for (const post of retrievedPosts) {
         console.log(`${post.title} (${post.feedName})`);
