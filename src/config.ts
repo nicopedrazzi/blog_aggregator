@@ -6,6 +6,7 @@ import { createFeedFollow, createFeeds, deleteFollowing, fetchFeed, printFeed } 
 import { AppConfig, readAppConfig, writeAppConfig } from "./lib/appConfig";
 import { UserRecord } from "./rssFunctions";
 import { scrapeFeeds } from "./aggregate";
+import { posts } from "./db/schema";
 
 
 export type Config = AppConfig;
@@ -75,6 +76,32 @@ export async function fetchFeedObj(_cmdName: string, ...args: string[]):Promise<
         });
     });
 };
+
+export async function getPostForUser(_cmdName: string, user: UserRecord, ...args: string[]) {
+    if (args.length!==1){
+        throw new Error("How many post do you want to retrieve?");
+    };
+    const limit = args[0] ? Number(args[0]): 2;
+
+  const retrievedPosts = await db
+    .select({
+      title: posts.title,
+      url: posts.url,
+      description: posts.description,
+      publishedAt: posts.publishedAt,
+      feedName: feeds.name,
+    })
+    .from(posts)
+    .innerJoin(feeds, eq(posts.feedId, feeds.id))
+    .where(eq(feeds.userId, user.id))
+    .limit(limit);
+
+  for (const post of retrievedPosts) {
+    console.log(`${post.title} (${post.feedName})`);
+    console.log(post.url);
+  };
+};
+
 
 export type UserCommandHandler = (
   cmdName: string,
