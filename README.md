@@ -42,4 +42,4 @@ npm run start agg 30s
 - `following`: Show feeds followed by current user
 - `unfollow <url>`: Stop following a feed
 - `agg <duration>`: Continuously scrape feeds (`500ms`, `20s`, `1m`, `1h`)
-- `browse [limit]`: Show latest posts for current user
+- `browse [limit] [filter] [word_to_filter]`: Show latest posts for current user, if wanting to use the filter option, the limit is mandatory.
